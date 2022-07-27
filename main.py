@@ -20,13 +20,13 @@ def get_args():
 
 
 def read_csv(path: PurePath) -> List[List[str]]:
-    data: List[List[str]] = []
-    with open(path, newline='') as csv_file:
+    csv_data: List[List[str]] = []
+    with open(path, newline='', encoding='utf-8') as csv_file:
         csv_reader = csv.reader(csv_file)
         for row in csv_reader:
-            data.append(row)
+            csv_data.append(row)
 
-    return data
+    return csv_data
 
 
 def prep_report(data: List[List[str]]) -> List[List[str]]:
@@ -105,12 +105,29 @@ if __name__ == "__main__":
 
     merged = merge_data(report_sanitized, theater_sanitized)
 
-    with_header = [["Lfd.-Nr.", "Buchungsnummer", "Ticket-Typ", "Platz", "Abocode"], *merged]
+    data_dict = {}
 
-    workbook = xlsxwriter.Workbook('demo.xlsx')
-    worksheet = workbook.add_worksheet()
-    for idx, wh_row in enumerate(with_header):
-        for idy, wh_cell in enumerate(wh_row):
-            worksheet.write(idx, idy, wh_cell)
+    for wh_row in merged:
+        if wh_row[2] not in data_dict.keys():
+            data_dict[wh_row[2]] = []
+        data_dict[wh_row[2]].append(wh_row)
 
-    workbook.close()
+
+    for key in data_dict.keys():
+        data = data_dict[key]
+        with_header = [["Lfd.-Nr.", "Buchungsnummer", "Ticket-Typ", "Platz", "Abocode"], *data]
+
+        workbook = xlsxwriter.Workbook(f"{key}.xlsx")
+        worksheet = workbook.add_worksheet()
+
+        for idx, wh_row in enumerate(with_header):
+            for idy, wh_cell in enumerate(wh_row):
+                worksheet.write(idx, idy, wh_cell)
+
+        workbook.close()
+
+
+
+
+
+
